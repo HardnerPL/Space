@@ -36,7 +36,7 @@ public class Player extends Entity {
                 touchX = Input.getX();
             }
             System.out.println(startX + " " + touchX + " " + Input.getX());
-            x = 1.7f * (Input.getX() - touchX) + startX;
+            x = 1.65f * (Input.getX() - touchX) + startX;
         }
         else touchX = -1;
         

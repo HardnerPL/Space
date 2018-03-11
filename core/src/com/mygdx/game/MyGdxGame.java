@@ -105,7 +105,7 @@ public class MyGdxGame extends ApplicationAdapter {
             textLives.draw(batch, "" + player.getHealth(), 50, 670);
             batch.draw(shield, 10, 600, 30, 30);
             textShield.draw(batch, "" + player.getShield(), 50, 630);
-            //textTime.draw(batch, "Enemies left: " + enemiesLeft, 10, 650);
+            //textTime.draw(batch, "Wave" + wave, 10, 650);
         } else {
             textShopExit.draw(batch, "EXIT", 160, 700);
             textShopDmg.draw(batch, "DMG", 50, 630);
@@ -249,21 +249,21 @@ public class MyGdxGame extends ApplicationAdapter {
             enemiesLeft = 20;
             wave = 1;
         }
-        if (wave == 1 && nextWave >= 3) {
+        else if (wave == 1 && nextWave >= 3) {
             enemiesToSpawn = 20;
             enemiesLeft = 20;
             normChance = 16;
             medChance = 4;
             wave = 2;
         }
-        if (wave == 2 && nextWave >= 3) {
+        else if (wave == 2 && nextWave >= 3) {
             enemiesToSpawn = 25;
             enemiesLeft = 25;
             normChance = 18;
             medChance = 7;
             wave = 3;
         }
-        if (wave == 3 && nextWave >= 3) {
+        else if (wave == 3 && nextWave >= 3) {
             enemiesToSpawn = 25;
             enemiesLeft = 25;
             normChance = 16;
@@ -271,7 +271,7 @@ public class MyGdxGame extends ApplicationAdapter {
             tankChance = 3;
             wave = 4;
         }
-        if (wave == 4 && nextWave >= 3) {
+        else if (wave == 4 && nextWave >= 3) {
             lastEnemies = 30;
             enemiesToSpawn = 30;
             enemiesLeft = 30;
@@ -280,7 +280,7 @@ public class MyGdxGame extends ApplicationAdapter {
             tankChance = 4;
             wave = 5;
         }
-        if (wave >= 5 && nextWave >= 3) {
+        else if (wave >= 5 && nextWave >= 3) {
             spawnSpeed += 0.1f;
             lastEnemies += 5;
             enemiesToSpawn = lastEnemies;
