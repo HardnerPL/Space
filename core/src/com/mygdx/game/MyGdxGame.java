@@ -42,8 +42,8 @@ public class MyGdxGame extends ApplicationAdapter {
     int  healthNorm = 1;
     float spawnChanceTank = 0.5f, shootChanceTank = 0.1f;
     int  healthTank = 3;
-    int enemiesLeft = 10;
-    int enemiesToSpawn = 10;
+    int enemiesLeft;
+    int enemiesToSpawn;
     int wave = 0;
     
     
@@ -237,6 +237,26 @@ public class MyGdxGame extends ApplicationAdapter {
     
     public void wave() {
         gameTime += Gdx.graphics.getDeltaTime();
+        if (wave == 0) {
+            enemiesToSpawn = 20;
+            enemiesLeft = 20;
+            wave = 1;
+        }
+        if (wave == 1 && enemiesLeft == 0) {
+            enemiesToSpawn = 25;
+            enemiesLeft = 25;
+            wave = 2;
+        }
+        if (wave == 2 && enemiesLeft == 0) {
+            enemiesToSpawn = 25;
+            enemiesLeft = 25;
+            wave = 3;
+        }
+        if (wave == 3 && enemiesLeft == 0) {
+            enemiesToSpawn = 25;
+            enemiesLeft = 25;
+            wave = 4;
+        }
     }
     
     @Override
