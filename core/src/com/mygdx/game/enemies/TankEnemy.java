@@ -12,8 +12,8 @@ import com.badlogic.gdx.graphics.Texture;
  * @author HardnerPL
  */
 public class TankEnemy extends Enemy {
-    public TankEnemy(int x, int hp, float as) {
-        super(x, 720, new Texture("player.png"), 80, 80, 30, hp, as);
+    public TankEnemy(float hpMod, float asMod) {
+        super(new Texture("player.png"), 80, 80, 30, (int)(hpMod * 8), asMod * 0.1f);
         bulletWidth = 16;
         bulletHeight = 22;
         bulletSpeed = 120;

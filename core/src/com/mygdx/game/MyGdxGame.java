@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.ArrayList;
 import java.util.List;
 import com.badlogic.gdx.math.*;
+import com.mygdx.game.enemies.MediumEnemy;
 import com.mygdx.game.enemies.NormalEnemy;
 import com.mygdx.game.enemies.TankEnemy;
 
@@ -33,17 +34,17 @@ public class MyGdxGame extends ApplicationAdapter {
     List<Entity> toRemove = new ArrayList<Entity>();
     List<Enemy> toRemoveE = new ArrayList<Enemy>();
     
-    boolean isWave = false;
+    boolean isWave = true;
     
-    float playerShoot = 0, playerShield = 0, enemiesShoot = 0, enemiesSpawn = 0, gameTime = 40;
+    float playerShoot = 0, playerShield = 0, enemiesShoot = 0, enemiesSpawn = 0, gameTime = 40, nextWave = 0;
     float invurnerable = 0;
     
-    float shootChanceNorm = 0.1f;
-    int  healthNorm = 1;
-    float spawnChanceTank = 0.5f, shootChanceTank = 0.1f;
-    int  healthTank = 3;
+    float  hpMod = 1, dmgMod = 1, asMod = 1;
+    float normChance = 1, medChance = 0, tankChance = 0;
+    float spawnSpeed = 1f;
     int enemiesLeft;
     int enemiesToSpawn;
+    int lastEnemies;
     int wave = 0;
     
     
@@ -80,7 +81,7 @@ public class MyGdxGame extends ApplicationAdapter {
             collide();
             shoot();
             spawn();
-            regen();
+            decay();
             wave();
         }
         
@@ -104,7 +105,7 @@ public class MyGdxGame extends ApplicationAdapter {
             textLives.draw(batch, "" + player.getHealth(), 50, 670);
             batch.draw(shield, 10, 600, 30, 30);
             textShield.draw(batch, "" + player.getShield(), 50, 630);
-            textTime.draw(batch, "Enemies left: " + enemiesLeft, 10, 650);
+            //textTime.draw(batch, "Enemies left: " + enemiesLeft, 10, 650);
         } else {
             textShopExit.draw(batch, "EXIT", 160, 700);
             textShopDmg.draw(batch, "DMG", 50, 630);
@@ -154,7 +155,7 @@ public class MyGdxGame extends ApplicationAdapter {
                 if (bullet.collide(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
                     toRemove.add(bullet);
                     player.hit(bullet.getDmg());
-                    
+                    //invurnerable = 1.5f;
                 }
             }
             else {
@@ -162,22 +163,23 @@ public class MyGdxGame extends ApplicationAdapter {
                     if (bullet.collide(enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight())) {
                         toRemove.add(bullet);
                         if (enemy.hit(bullet.getDmg())) {
-                            toRemoveE.add(enemy);
                             enemiesLeft--;
+                            toRemoveE.add(enemy);
                         }
                     }
                 }
             }
         }
-        if (invurnerable > 0) invurnerable -= Gdx.graphics.getDeltaTime();
-        else invurnerable = 0;
+        //if (invurnerable > 0) invurnerable -= Gdx.graphics.getDeltaTime();
+        //else invurnerable = 0;
         
         for (Enemy enemy : enemies) {
             if (invurnerable == 0) {
                 if (enemy.collide(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
+                    enemiesLeft--;
                     toRemoveE.add(enemy);
                     player.hit(enemy.getHealth());
-                    invurnerable = 1.5f;
+                    //invurnerable = 1.5f;
                 }
             }
         }
@@ -206,7 +208,7 @@ public class MyGdxGame extends ApplicationAdapter {
             player.shoot(bullets); //bullets.add(new Bullet(true, player.getX() + player.getWidth() / 2 - 5, player.getY() + player.getHeight(), new Texture("bullet.png"), 10, 15, true, 400));
             playerShoot = 0;
         }
-        if (enemiesShoot > 0.5) {
+        if (enemiesShoot > 0.1) {
             for (Enemy enemy : enemies) {
                 enemy.shoot(bullets);
             }
@@ -216,46 +218,76 @@ public class MyGdxGame extends ApplicationAdapter {
     
     public void spawn() {
         enemiesSpawn += Gdx.graphics.getDeltaTime();
-        if (enemiesSpawn > 1 && enemiesToSpawn > 0) {
-            if (MathUtils.random() < 1 - spawnChanceTank)
-                enemies.add(new NormalEnemy((int)(MathUtils.random() * 355.0), healthNorm, shootChanceNorm));
-            else
-                enemies.add(new TankEnemy((int)(MathUtils.random() * 355.0), healthTank, shootChanceTank));
+        if (enemiesSpawn > 1 / spawnSpeed && enemiesToSpawn > 0) {
+            if (MathUtils.random(normChance + medChance) > (normChance + medChance) - normChance)
+                enemies.add(new NormalEnemy(hpMod, asMod));
+            else if (MathUtils.random(medChance + tankChance) > (medChance + tankChance) - medChance) {
+                enemies.add(new MediumEnemy(hpMod, asMod));
+            }
+            else enemies.add(new TankEnemy(hpMod, asMod));
             enemiesSpawn = 0;
             enemiesToSpawn--;
         }
     }
     
-    public void regen() {
+    public void decay() {
         if (player.getShield() < 1) playerShield += Gdx.graphics.getDeltaTime();
         else playerShield = 0;
         if (playerShield > 15) {
             if (player.regenShield()) playerShield = 0;
             
         }
+        player.decay();
     }
     
     public void wave() {
         gameTime += Gdx.graphics.getDeltaTime();
+        if (enemiesLeft == 0 ) nextWave += Gdx.graphics.getDeltaTime();
+        else nextWave = 0;
         if (wave == 0) {
             enemiesToSpawn = 20;
             enemiesLeft = 20;
             wave = 1;
         }
-        if (wave == 1 && enemiesLeft == 0) {
-            enemiesToSpawn = 25;
-            enemiesLeft = 25;
+        if (wave == 1 && nextWave >= 3) {
+            enemiesToSpawn = 20;
+            enemiesLeft = 20;
+            normChance = 16;
+            medChance = 4;
             wave = 2;
         }
-        if (wave == 2 && enemiesLeft == 0) {
+        if (wave == 2 && nextWave >= 3) {
             enemiesToSpawn = 25;
             enemiesLeft = 25;
+            normChance = 18;
+            medChance = 7;
             wave = 3;
         }
-        if (wave == 3 && enemiesLeft == 0) {
+        if (wave == 3 && nextWave >= 3) {
             enemiesToSpawn = 25;
             enemiesLeft = 25;
+            normChance = 16;
+            medChance = 6;
+            tankChance = 3;
             wave = 4;
+        }
+        if (wave == 4 && nextWave >= 3) {
+            lastEnemies = 30;
+            enemiesToSpawn = 30;
+            enemiesLeft = 30;
+            normChance = 18;
+            medChance = 8;
+            tankChance = 4;
+            wave = 5;
+        }
+        if (wave >= 5 && nextWave >= 3) {
+            spawnSpeed += 0.1f;
+            lastEnemies += 5;
+            enemiesToSpawn = lastEnemies;
+            enemiesLeft = enemiesToSpawn;
+            normChance = 4;
+            medChance = 2;
+            tankChance = 1;
         }
     }
     

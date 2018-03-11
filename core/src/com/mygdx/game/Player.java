@@ -16,6 +16,7 @@ public class Player extends Entity {
     int shield;
     int startX, touchX;
     int bulletDamage;
+    float doubleShot = 0;
     
     public Player(int x, int y, Texture texture, int width, int height) {
         super(x, y, texture, width, height);
@@ -45,8 +46,16 @@ public class Player extends Entity {
         return true;
     }
     
+    public void decay() {
+        if (doubleShot > 0) doubleShot -= Gdx.graphics.getDeltaTime();
+    }
+    
     public void shoot(ArrayList<Bullet> bullets) {
-        bullets.add(new Bullet(true, x + width / 2 - 10 / 2, y + height + 15, new Texture("bullet.png"), 10, 15, true,  250, bulletDamage));
+        if (doubleShot > 0) {
+            bullets.add(new Bullet(true, x + width / 2 - 30 / 2, y + height + 15, new Texture("bullet.png"), 10, 15, true,  250, bulletDamage));
+            bullets.add(new Bullet(true, x + width / 2 + 10 / 2, y + height + 15, new Texture("bullet.png"), 10, 15, true,  250, bulletDamage));
+        }
+        else bullets.add(new Bullet(true, x + width / 2 - 10 / 2, y + height + 15, new Texture("bullet.png"), 10, 15, true,  250, bulletDamage));
     }
     
     public boolean getAlive() {
@@ -95,5 +104,9 @@ public class Player extends Entity {
     
     public void regenHealth() {
         if (health < 3) health++;
+    }
+
+    public void doubleShot() {
+        doubleShot = 10;
     }
 }
