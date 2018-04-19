@@ -13,10 +13,9 @@ import com.badlogic.gdx.graphics.Texture;
  */
 public class NormalEnemy extends Enemy {
     public NormalEnemy(float hpMod, float asMod) {
-        super(new Texture("player.png"), 50, 50, 50, (int)(hpMod * 2), asMod * 0.2f);
+        super(new Texture("player.png"), 50, 50, 50, (int)(hpMod * 15), asMod * 0.2f);
         bulletWidth = 10;
         bulletHeight = 15;
         bulletSpeed = 150;
-        bulletDamage = 1;
     }
 }

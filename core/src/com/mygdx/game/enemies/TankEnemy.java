@@ -13,11 +13,10 @@ import com.badlogic.gdx.graphics.Texture;
  */
 public class TankEnemy extends Enemy {
     public TankEnemy(float hpMod, float asMod) {
-        super(new Texture("player.png"), 80, 80, 30, (int)(hpMod * 8), asMod * 0.1f);
+        super(new Texture("player.png"), 80, 80, 30, (int)(hpMod * 50), asMod * 0.1f);
         bulletWidth = 16;
         bulletHeight = 22;
         bulletSpeed = 120;
-        bulletDamage = 2;
     }
     
 }

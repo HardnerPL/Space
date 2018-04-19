@@ -12,13 +12,13 @@ import com.mygdx.game.Player;
  *
  * @author HardnerPL
  */
-public class DropShield extends Drop {
+public class DropDamage extends Drop {
     
-    public DropShield(float x, float y) {
-        super(x, y, new Texture("shield.png"));
+    public DropDamage(float x, float y) {
+        super(x, y, new Texture("bullet.png"));
     }
     @Override
     public void onCollision(Player player) {
-        player.shield();
+        player.damageBoost();
     }
 }

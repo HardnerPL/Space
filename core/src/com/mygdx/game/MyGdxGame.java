@@ -4,7 +4,6 @@ import com.mygdx.game.drops.Drop;
 import com.mygdx.game.enemies.Enemy;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -21,11 +20,14 @@ public class MyGdxGame extends ApplicationAdapter {
     static final int WORLD_HEIGHT = 720;
     OrthographicCamera camera;
     
+    Input input = new Input();
+    
     SpriteBatch batch;
-    BitmapFont textPoints, textLives, textShield, textTime;
-    BitmapFont textShopDmg, textShopExit;
+    BitmapFont font1, font2, font3;
+    BitmapFont textPoints, textLives, textTime, textMoney;
+    BitmapFont priceDmg, priceHp, priceAs, textDmg, textHp, textAs, textExit;
     Rectangle recShopDmg, recShopExit;
-    Texture shield, hearth;
+    Texture hearth, background, shop;
     
     Player player;
     ArrayList<Enemy> enemies = new ArrayList<Enemy>();
@@ -34,7 +36,7 @@ public class MyGdxGame extends ApplicationAdapter {
     List<Entity> toRemove = new ArrayList<Entity>();
     List<Enemy> toRemoveE = new ArrayList<Enemy>();
     
-    boolean isWave = true;
+    boolean isWave = false;
     
     float playerShoot = 0, playerShield = 0, enemiesShoot = 0, enemiesSpawn = 0, gameTime = 40, nextWave = 0;
     float invurnerable = 0;
@@ -47,6 +49,12 @@ public class MyGdxGame extends ApplicationAdapter {
     int lastEnemies;
     int wave = 0;
     
+    int shopInWaves = 5;
+    int shopMaxLvl = 6;
+    int[] bought = {0, 0, 0};
+    int[] price = {200, 500, 1000, 2000, 5000, 10000, 20000};
+    boolean touched;
+    
     
     
     
@@ -54,20 +62,32 @@ public class MyGdxGame extends ApplicationAdapter {
     public void create () {
         camera = new OrthographicCamera(405, 720);
         batch = new SpriteBatch();
-        shield = new Texture("shield.png");
+        
         hearth = new Texture("hearth.png");
+        background = new Texture("background.jpg");
+        shop = new Texture("shop.png");
         player = new Player(100, 20, new Texture("ship.png"), 50, 35);
+        
+        font1 = new BitmapFont();
+        font2 = new BitmapFont();
         textPoints = new BitmapFont();
         textLives = new BitmapFont();
         textTime = new BitmapFont();
-        textShield = new BitmapFont();
-        textShopDmg = new BitmapFont();
-        textShopExit = new BitmapFont();
+        textMoney = new BitmapFont();
+        textExit = new BitmapFont();
+        textDmg = new BitmapFont();
+        textHp = new BitmapFont();
+        textAs = new BitmapFont();
+        priceDmg = new BitmapFont();
+        priceHp = new BitmapFont();
+        priceAs = new BitmapFont();
+        
+        font1.getData().scale(1.5f);
+        font2.getData().scale(2.25f);
         textPoints.getData().scale(1.5f);
         textLives.getData().scale(1.5f);
-        textShield.getData().scale(1.5f);
-        textShopDmg.getData().scale(1.5f);
-        textShopExit.getData().scale(2f);
+        textMoney.getData().scale(1.5f);
+        
         camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
         camera.update();
     }
@@ -75,6 +95,7 @@ public class MyGdxGame extends ApplicationAdapter {
     @Override
     public void render () {
         batch.setProjectionMatrix(camera.combined);
+        if (!Gdx.input.justTouched()) touched = false;
         
         if (isWave) {
             move();
@@ -85,10 +106,8 @@ public class MyGdxGame extends ApplicationAdapter {
             wave();
         }
         
-        Gdx.gl.glClearColor(0, 0, 0, 0);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        
+        batch.draw(background, 0, 0);
         if (isWave) {
             if (player.getAlive()) batch.draw(player.getTexture(), player.getX(), player.getY(), player.width, player.height);
             for ( Bullet bullet : bullets) {
@@ -100,28 +119,66 @@ public class MyGdxGame extends ApplicationAdapter {
             for (Enemy enemy : enemies) {
                 batch.draw(enemy.getTexture(), enemy.getX(), enemy.getY(), enemy.width, enemy.height);
             }
-            textPoints.draw(batch, "Points: " + player.getPoints(), 10, 710);
-            batch.draw(hearth, 10, 640, 30, 30);
-            textLives.draw(batch, "" + player.getHealth(), 50, 670);
-            batch.draw(shield, 10, 600, 30, 30);
-            textShield.draw(batch, "" + player.getShield(), 50, 630);
+            //font1.draw(batch, "Points " + player.getPoints(), 10, 710);
+            font1.draw(batch, "$" + player.getMoney(), 10, 710);
+            batch.draw(hearth, 315, 680, 30, 30);
+            font1.draw(batch, "" + player.getHealth(), 350, 710);
             //textTime.draw(batch, "Wave" + wave, 10, 650);
         } else {
-            textShopExit.draw(batch, "EXIT", 160, 700);
-            textShopDmg.draw(batch, "DMG", 50, 630);
-            if (Input.getX() < 160 + 90 &&
-                    Input.getX() > 160 &&
-                    Input.getY() > 720 - 700 &&
-                    Input.getY() < 720 - 700 + 40 &&
-                    Gdx.input.isTouched(0)) {
+            player.heal();
+            batch.draw(shop, 0, 0);
+            font2.setColor(1, 1, 1, 1);
+            font2.draw(batch, "$" + player.getMoney(), 50, 690);
+            font2.setColor(0, 0, 0, 1);
+            font2.draw(batch, "DMG", 55, 560);
+            if (bought[0] > shopMaxLvl) font2.draw(batch, "MAX", 220, 560);
+            else font2.draw(batch, "$" + price[bought[0]], 220, 560);
+            font2.draw(batch, "HP", 77, 390);
+            if (bought[1] > shopMaxLvl) font2.draw(batch, "MAX", 220, 390);
+            else font2.draw(batch, "$" + price[bought[1]], 220, 390);
+            font2.draw(batch, "AS", 80, 220);
+            if (bought[2] > shopMaxLvl) font2.draw(batch, "MAX", 220, 220);
+            else font2.draw(batch, "$" + price[bought[2]], 220, 220);
+            //batch.draw(priceTexture.get(bought[0]), 203, 720 - 144 - 72);
+            //batch.draw(priceTexture.get(bought[1]), 203, 720 - 314 - 72);
+            //batch.draw(priceTexture.get(bought[2]), 203, 720 - 482 - 72);
+            if (Input.getX() < 109 + 183 && //EXIT
+                    Input.getX() > 109 &&
+                    Input.getY() > 603 &&
+                    Input.getY() < 603 + 72 &&
+                    Gdx.input.justTouched()) {
+                shopInWaves = 5;
                 isWave = true;
             }
-            if (Input.getX() < 50 + 50 &&
-                    Input.getX() > 50 &&
-                    Input.getY() > 720 - 630 &&
-                    Input.getY() < 720 - 630 + 30 &&
-                    Gdx.input.isTouched(0)) {
-                player.buy();
+            if (Input.getX() < 203 + 183 && //DMG
+                    Input.getX() > 203 &&
+                    Input.getY() > 144 &&
+                    Input.getY() < 144 + 72 &&
+                    Gdx.input.justTouched() && !touched && bought[0] <= shopMaxLvl) {
+                if (player.spendMoney(price[bought[0]])) {
+                    bought[0]++;
+                    player.upgrade(0);
+                }
+            }
+            if (Input.getX() < 203 + 183 && //HP
+                    Input.getX() > 203 &&
+                    Input.getY() > 314 &&
+                    Input.getY() < 314 + 72 &&
+                    Gdx.input.justTouched() && !touched && bought[1] <= shopMaxLvl) {
+                if (player.spendMoney(price[bought[1]])) {
+                    bought[1]++;
+                    player.upgrade(1);
+                }
+            }
+            if (Input.getX() < 203 + 183 && //AS
+                    Input.getX() > 203 &&
+                    Input.getY() > 482 &&
+                    Input.getY() < 482 + 72 &&
+                    Gdx.input.justTouched() && !touched && bought[2] <= shopMaxLvl) {
+                if (player.spendMoney(price[bought[2]])) {
+                    bought[2]++;
+                    player.upgrade(2);
+                }
             }
         }
         batch.end();
@@ -154,7 +211,7 @@ public class MyGdxGame extends ApplicationAdapter {
             if (!bullet.isPlayers()) {
                 if (bullet.collide(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
                     toRemove.add(bullet);
-                    player.hit(bullet.getDmg());
+                    player.hit();
                     //invurnerable = 1.5f;
                 }
             }
@@ -178,7 +235,7 @@ public class MyGdxGame extends ApplicationAdapter {
                 if (enemy.collide(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
                     enemiesLeft--;
                     toRemoveE.add(enemy);
-                    player.hit(enemy.getHealth());
+                    player.hit();
                     //invurnerable = 1.5f;
                 }
             }
@@ -204,11 +261,11 @@ public class MyGdxGame extends ApplicationAdapter {
     public void shoot() {
         playerShoot += Gdx.graphics.getDeltaTime();
         enemiesShoot += Gdx.graphics.getDeltaTime();
-        if (playerShoot > 0.3 && player.getAlive()) {
+        if (playerShoot > 1.0 / player.getAttackSpeed() * 4 && player.getAlive()) {
             player.shoot(bullets); //bullets.add(new Bullet(true, player.getX() + player.getWidth() / 2 - 5, player.getY() + player.getHeight(), new Texture("bullet.png"), 10, 15, true, 400));
             playerShoot = 0;
         }
-        if (enemiesShoot > 0.1) {
+        if (enemiesShoot > 0.5) {
             for (Enemy enemy : enemies) {
                 enemy.shoot(bullets);
             }
@@ -231,18 +288,15 @@ public class MyGdxGame extends ApplicationAdapter {
     }
     
     public void decay() {
-        if (player.getShield() < 1) playerShield += Gdx.graphics.getDeltaTime();
-        else playerShield = 0;
-        if (playerShield > 15) {
-            if (player.regenShield()) playerShield = 0;
-            
-        }
         player.decay();
     }
     
     public void wave() {
         gameTime += Gdx.graphics.getDeltaTime();
-        if (enemiesLeft == 0 ) nextWave += Gdx.graphics.getDeltaTime();
+        if (enemiesLeft == 0 ) {
+            if (shopInWaves == 0) isWave = false;
+            else nextWave += Gdx.graphics.getDeltaTime();
+        }
         else nextWave = 0;
         if (wave == 0) {
             enemiesToSpawn = 20;
@@ -255,6 +309,7 @@ public class MyGdxGame extends ApplicationAdapter {
             normChance = 16;
             medChance = 4;
             wave = 2;
+            shopInWaves--;
         }
         else if (wave == 2 && nextWave >= 3) {
             enemiesToSpawn = 25;
@@ -262,6 +317,7 @@ public class MyGdxGame extends ApplicationAdapter {
             normChance = 18;
             medChance = 7;
             wave = 3;
+            shopInWaves--;
         }
         else if (wave == 3 && nextWave >= 3) {
             enemiesToSpawn = 25;
@@ -270,6 +326,7 @@ public class MyGdxGame extends ApplicationAdapter {
             medChance = 6;
             tankChance = 3;
             wave = 4;
+            shopInWaves--;
         }
         else if (wave == 4 && nextWave >= 3) {
             lastEnemies = 30;
@@ -279,6 +336,7 @@ public class MyGdxGame extends ApplicationAdapter {
             medChance = 8;
             tankChance = 4;
             wave = 5;
+            shopInWaves--;
         }
         else if (wave >= 5 && nextWave >= 3) {
             spawnSpeed += 0.1f;
@@ -288,6 +346,7 @@ public class MyGdxGame extends ApplicationAdapter {
             normChance = 4;
             medChance = 2;
             tankChance = 1;
+            shopInWaves--;
         }
     }
     
