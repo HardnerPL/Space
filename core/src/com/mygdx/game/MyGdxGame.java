@@ -38,12 +38,12 @@ public class MyGdxGame extends ApplicationAdapter {
     
     boolean isWave = false;
     
-    float playerShoot = 0, playerShield = 0, enemiesShoot = 0, enemiesSpawn = 0, gameTime = 40, nextWave = 0;
+    float playerShoot = 0, playerShield = 0, enemiesShoot = 0, enemiesSpawn = 0, gameTime = 0, nextWave = 0;
     float invurnerable = 0;
     
     float  hpMod = 1, dmgMod = 1, asMod = 1;
     float normChance = 1, medChance = 0, tankChance = 0;
-    float spawnSpeed = 1f;
+    float spawnSpeed = 0.7f;
     int enemiesLeft;
     int enemiesToSpawn;
     int lastEnemies;
@@ -94,6 +94,17 @@ public class MyGdxGame extends ApplicationAdapter {
     
     @Override
     public void render () {
+        if (player.alive == false) {
+            player = new Player(100, 20, new Texture("ship.png"), 50, 35);
+            enemies.clear();
+            drops.clear();
+            bullets.clear();
+            shopInWaves = 5;
+            hpMod = 1; dmgMod = 1; asMod = 1;
+            normChance = 1; medChance = 0; tankChance = 0;
+            spawnSpeed = 0.7f;
+            wave = 0;
+        }
         batch.setProjectionMatrix(camera.combined);
         if (!Gdx.input.justTouched()) touched = false;
         
@@ -119,7 +130,7 @@ public class MyGdxGame extends ApplicationAdapter {
             for (Enemy enemy : enemies) {
                 batch.draw(enemy.getTexture(), enemy.getX(), enemy.getY(), enemy.width, enemy.height);
             }
-            //font1.draw(batch, "Points " + player.getPoints(), 10, 710);
+            font1.draw(batch, "" + wave, 180, 710);
             font1.draw(batch, "$" + player.getMoney(), 10, 710);
             batch.draw(hearth, 315, 680, 30, 30);
             font1.draw(batch, "" + player.getHealth(), 350, 710);
@@ -242,7 +253,7 @@ public class MyGdxGame extends ApplicationAdapter {
         }
         
         for ( Drop drop : drops) {
-            if (drop.collide(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
+            if (drop.collide(player.getX(), player.getY(), player.getWidth(), player.getHeight()) || enemiesLeft == 0) {
                 toRemove.add(drop);
                 drop.onCollision(player);
             }
@@ -256,6 +267,9 @@ public class MyGdxGame extends ApplicationAdapter {
         enemies.removeAll(toRemoveE);
         toRemoveE.clear();
         toRemove.clear();
+        if (enemiesLeft == 0) {
+            bullets.clear();
+        }
     }
     
     public void shoot() {
@@ -302,6 +316,7 @@ public class MyGdxGame extends ApplicationAdapter {
             enemiesToSpawn = 20;
             enemiesLeft = 20;
             wave = 1;
+            shopInWaves--;
         }
         else if (wave == 1 && nextWave >= 3) {
             enemiesToSpawn = 20;
@@ -347,6 +362,7 @@ public class MyGdxGame extends ApplicationAdapter {
             medChance = 2;
             tankChance = 1;
             shopInWaves--;
+            wave++;
         }
     }
     

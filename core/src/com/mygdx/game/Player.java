@@ -114,7 +114,7 @@ public class Player extends Entity {
     
     public void regenHealth() {
         if (health < maxHealth) health++;
-        else points += 5000;
+        else money += 200;
     }
     
     public void heal() {

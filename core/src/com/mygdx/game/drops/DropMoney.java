@@ -18,10 +18,10 @@ public class DropMoney extends Drop {
     public DropMoney(float x, float y) {
         super(x, y, new Texture("bullet.png"));
         float random = MathUtils.random();
-        value = 10;
-        if (random > 0.5f) value = 20;
-        if (random > 0.75f) value = 50;
-        if (random > 0.90f) value = 100;
+        value = 20;
+        if (random > 0.5f) value = 50;
+        if (random > 0.75f) value = 100;
+        if (random > 0.90f) value = 200;
         if (random > 0.99f) value = 500;
     }
     @Override
